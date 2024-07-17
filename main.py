@@ -1,18 +1,16 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 
 class ProductoMusical:
     def __init__(self, nombre, marcas_precios_stock):
         self.nombre = nombre
         self.marcas_precios_stock = marcas_precios_stock
 
-    def mostrar_inventario(self):
-        inventario = f"{self.nombre.capitalize()} - Productos Disponibles en LIMA MUSIC:\n"
-        inventario += "{:<15} {:<15} {:<10} {:<10}\n".format("Marca", "Precio (USD)", "Stock", "Total")
-        inventario += "=" * 50 + "\n"
-        for marca, (precio, stock) in self.marcas_precios_stock.items():
-            inventario += "{:<15} {:<15.2f} {:<10} {:<10.2f}\n".format(marca.capitalize(), precio, stock, precio * stock)
-        return inventario
+    def obtener_inventario(self):
+        return [
+            (marca, precio, stock, precio * stock)
+            for marca, (precio, stock) in self.marcas_precios_stock.items()
+        ]
 
 class CarritoItem:
     def __init__(self, producto, marca, cantidad):
@@ -46,7 +44,8 @@ class App:
         tk.Label(self.root, text="Bienvenido a LIMA MUSIC", font=("Helvetica", 16)).pack(pady=10)
         tk.Button(self.root, text="Iniciar Sesión", command=self.iniciar_sesion_window).pack(pady=10)
         tk.Button(self.root, text="Crear Nuevo Usuario", command=self.crear_usuario_window).pack(pady=10)
-        tk.Button(self.root, text="Ver Inventario", command=self.inventario_window).pack(pady=10)
+        for producto_nombre in self.productos:
+            tk.Button(self.root, text=producto_nombre, command=lambda p=producto_nombre: self.producto_window(p)).pack(pady=5)
         tk.Button(self.root, text="Salir", command=self.root.quit).pack(pady=10)
 
     def iniciar_sesion_window(self):
@@ -66,7 +65,7 @@ class App:
         contrasena = self.contrasena_entry.get()
         if self.usuarios.get(usuario) == contrasena:
             messagebox.showinfo("Éxito", f"Bienvenido, {usuario}!")
-            self.inventario_window()
+            self.main_window()
         else:
             messagebox.showerror("Error", "Nombre de usuario o contraseña incorrectos. Intente nuevamente.")
 
@@ -92,39 +91,27 @@ class App:
         else:
             messagebox.showerror("Error", "Por favor complete ambos campos para crear un nuevo usuario.")
 
-    def inventario_window(self):
+    def producto_window(self, producto_nombre):
         self.clear_frame()
-        tk.Label(self.root, text="Inventario de LIMA MUSIC", font=("Helvetica", 16)).pack(pady=10)
-        for producto in self.productos.values():
-            tk.Label(self.root, text=producto.mostrar_inventario(), justify=tk.LEFT).pack(anchor='w')
-        tk.Button(self.root, text="Seleccionar Producto", command=self.seleccionar_producto_window).pack(pady=10)
+        producto = self.productos[producto_nombre]
+        tk.Label(self.root, text=f"{producto.nombre} - Inventario", font=("Helvetica", 16)).pack(pady=10)
+        tree = ttk.Treeview(self.root, columns=("Marca", "Precio", "Stock", "Total"), show="headings")
+        tree.heading("Marca", text="Marca")
+        tree.heading("Precio", text="Precio (USD)")
+        tree.heading("Stock", text="Stock")
+        tree.heading("Total", text="Total (USD)")
+        for item in producto.obtener_inventario():
+            tree.insert("", tk.END, values=item)
+        tree.pack(pady=10)
+
+        tk.Label(self.root, text="Marca:").pack(pady=5)
+        self.marca_entry = tk.Entry(self.root)
+        self.marca_entry.pack(pady=5)
+        tk.Label(self.root, text="Cantidad:").pack(pady=5)
+        self.cantidad_entry = tk.Entry(self.root)
+        self.cantidad_entry.pack(pady=5)
+        tk.Button(self.root, text="Agregar al Carrito", command=lambda: self.agregar_al_carrito(producto)).pack(pady=10)
         tk.Button(self.root, text="Volver", command=self.main_window).pack(pady=10)
-
-    def seleccionar_producto_window(self):
-        self.clear_frame()
-        tk.Label(self.root, text="Seleccionar Producto", font=("Helvetica", 16)).pack(pady=10)
-        self.producto_entry = tk.Entry(self.root)
-        self.producto_entry.pack(pady=5)
-        tk.Button(self.root, text="Seleccionar", command=self.seleccionar_marca_window).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.inventario_window).pack(pady=10)
-
-    def seleccionar_marca_window(self):
-        producto_seleccionado = self.producto_entry.get().upper()
-        producto = self.productos.get(producto_seleccionado)
-        if producto:
-            self.clear_frame()
-            tk.Label(self.root, text=producto.mostrar_inventario(), justify=tk.LEFT).pack(anchor='w')
-            tk.Label(self.root, text="Marcas Disponibles: " + ", ".join(producto.marcas_precios_stock.keys())).pack(pady=10)
-            self.marca_entry = tk.Entry(self.root)
-            self.marca_entry.pack(pady=5)
-            tk.Label(self.root, text="Cantidad:").pack(pady=5)
-            self.cantidad_entry = tk.Entry(self.root)
-            self.cantidad_entry.pack(pady=5)
-            tk.Button(self.root, text="Agregar al Carrito", command=lambda: self.agregar_al_carrito(producto)).pack(pady=10)
-            tk.Button(self.root, text="Volver", command=self.inventario_window).pack(pady=10)
-        else:
-            messagebox.showerror("Error", "Producto no encontrado en LIMA MUSIC.")
-            self.seleccionar_producto_window()
 
     def agregar_al_carrito(self, producto):
         marca_seleccionada = self.marca_entry.get().lower()
@@ -139,7 +126,7 @@ class App:
                 messagebox.showerror("Error", "Cantidad no válida o no hay suficiente stock.")
         else:
             messagebox.showerror("Error", f"Marca no válida para {producto.nombre.capitalize()}.")
-        self.inventario_window()
+        self.main_window()
 
     def clear_frame(self):
         for widget in self.root.winfo_children():
