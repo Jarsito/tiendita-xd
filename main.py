@@ -25,6 +25,8 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("LIMA MUSIC")
+        self.root.geometry("1000x700")
+        self.root.configure(bg='#6366F1')
         self.usuarios = {"usuario1": "contrasena1", "usuario2": "contrasena2"}
         self.carrito = []
         self.productos = {
@@ -41,24 +43,82 @@ class App:
 
     def main_window(self):
         self.clear_frame()
-        tk.Label(self.root, text="Bienvenido a LIMA MUSIC", font=("Helvetica", 16)).pack(pady=10)
-        tk.Button(self.root, text="Iniciar Sesión", command=self.iniciar_sesion_window).pack(pady=10)
-        tk.Button(self.root, text="Crear Nuevo Usuario", command=self.crear_usuario_window).pack(pady=10)
+        
+        # Header
+        header = tk.Frame(self.root, bg="#1a202c", height=50)
+        header.pack(fill=tk.X)
+        header.pack_propagate(False)
+        
+        title = tk.Label(header, text="LIMA MUSIC", font=("Helvetica", 20, "bold"), fg="#ffffff", bg="#1a202c")
+        title.pack(side=tk.LEFT, padx=20)
+        
+        nav = tk.Frame(header, bg="#1a202c")
+        nav.pack(side=tk.RIGHT, padx=20)
+
+        nav_buttons = [("Iniciar Sesión", self.iniciar_sesion_window),
+                       ("Crear Nuevo Usuario", self.crear_usuario_window)]
+        
+        for text, command in nav_buttons:
+            btn = tk.Button(nav, text=text, font=("Helvetica", 12), fg="#ffffff", bg="#1a202c", relief=tk.FLAT, command=command)
+            btn.pack(side=tk.LEFT, padx=10)
+        
+        # Main content area
+        self.main_frame = tk.Frame(self.root, bg='#6366F1')
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
         for producto_nombre in self.productos:
-            tk.Button(self.root, text=producto_nombre, command=lambda p=producto_nombre: self.producto_window(p)).pack(pady=5)
-        tk.Button(self.root, text="Salir", command=self.root.quit).pack(pady=10)
+            tk.Button(self.main_frame, text=producto_nombre, command=lambda p=producto_nombre: self.producto_window(p)).pack(pady=5)
 
     def iniciar_sesion_window(self):
         self.clear_frame()
-        tk.Label(self.root, text="Iniciar Sesión", font=("Helvetica", 16)).pack(pady=10)
-        tk.Label(self.root, text="Nombre de Usuario:").pack(pady=5)
-        self.usuario_entry = tk.Entry(self.root)
+        
+        # Container for form
+        container = tk.Frame(self.root, bg='#6366F1')
+        container.pack(expand=True)
+
+        # Placeholder for logo
+        logo = tk.Label(container, text="Logo", bg='#6366F1', fg='white', font=("Helvetica", 16, "bold"))
+        logo.pack(pady=10)
+
+        # Heading
+        heading = tk.Label(container, text="Iniciar Sesión", bg='#6366F1', fg='white', font=("Helvetica", 20, "bold"))
+        heading.pack(pady=10)
+
+        # Subheading
+        subheading = tk.Label(container, text="O empiece su prueba gratuita de 14 días", bg='#6366F1', fg='white', font=("Helvetica", 10))
+        subheading.pack(pady=5)
+
+        # Username entry
+        self.usuario_entry = tk.Entry(container, width=30, font=("Helvetica", 12))
+        self.usuario_entry.insert(0, 'Usuario')
+        self.usuario_entry.bind("<FocusIn>", lambda event: self.clear_placeholder(event, 'Usuario'))
         self.usuario_entry.pack(pady=5)
-        tk.Label(self.root, text="Contraseña:").pack(pady=5)
-        self.contrasena_entry = tk.Entry(self.root, show="*")
+
+        # Password entry
+        self.contrasena_entry = tk.Entry(container, show='*', width=30, font=("Helvetica", 12))
+        self.contrasena_entry.insert(0, 'Contraseña')
+        self.contrasena_entry.bind("<FocusIn>", lambda event: self.clear_placeholder(event, 'Contraseña'))
         self.contrasena_entry.pack(pady=5)
-        tk.Button(self.root, text="Iniciar Sesión", command=self.verificar_sesion).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.main_window).pack(pady=10)
+
+        # Remember me checkbox
+        self.remember_var = tk.BooleanVar()
+        remember_me = tk.Checkbutton(container, text="Recuérdame", variable=self.remember_var, bg='#6366F1', fg='white', font=("Helvetica", 10))
+        remember_me.pack(pady=5)
+
+        # Forgot password link
+        forgot_password = tk.Label(container, text="¿Olvidó su contraseña?", bg='#6366F1', fg='white', font=("Helvetica", 10), cursor="hand2")
+        forgot_password.pack(pady=5)
+
+        # Sign in button
+        sign_in_button = tk.Button(container, text="Iniciar Sesión", command=self.verificar_sesion, width=30, bg='#6366F1', fg='white', font=("Helvetica", 12, "bold"))
+        sign_in_button.pack(pady=10)
+
+        # Create account and Continue as guest links
+        create_account = tk.Label(container, text="Crear una cuenta", bg='#6366F1', fg='white', font=("Helvetica", 10), cursor="hand2")
+        create_account.pack(side=tk.LEFT, padx=20)
+
+        continue_as_guest = tk.Label(container, text="Continuar como invitado", bg='#6366F1', fg='white', font=("Helvetica", 10), cursor="hand2")
+        continue_as_guest.pack(side=tk.RIGHT, padx=20)
 
     def verificar_sesion(self):
         usuario = self.usuario_entry.get()
@@ -71,15 +131,38 @@ class App:
 
     def crear_usuario_window(self):
         self.clear_frame()
-        tk.Label(self.root, text="Crear Nuevo Usuario", font=("Helvetica", 16)).pack(pady=10)
-        tk.Label(self.root, text="Nuevo Nombre de Usuario:").pack(pady=5)
-        self.nuevo_usuario_entry = tk.Entry(self.root)
+        
+        # Container for form
+        container = tk.Frame(self.root, bg='#6366F1')
+        container.pack(expand=True)
+
+        # Placeholder for logo
+        logo = tk.Label(container, text="Logo", bg='#6366F1', fg='white', font=("Helvetica", 16, "bold"))
+        logo.pack(pady=10)
+
+        # Heading
+        heading = tk.Label(container, text="Crear Nuevo Usuario", bg='#6366F1', fg='white', font=("Helvetica", 20, "bold"))
+        heading.pack(pady=10)
+
+        # Username entry
+        self.nuevo_usuario_entry = tk.Entry(container, width=30, font=("Helvetica", 12))
+        self.nuevo_usuario_entry.insert(0, 'Nuevo Usuario')
+        self.nuevo_usuario_entry.bind("<FocusIn>", lambda event: self.clear_placeholder(event, 'Nuevo Usuario'))
         self.nuevo_usuario_entry.pack(pady=5)
-        tk.Label(self.root, text="Nueva Contraseña:").pack(pady=5)
-        self.nueva_contrasena_entry = tk.Entry(self.root, show="*")
+
+        # Password entry
+        self.nueva_contrasena_entry = tk.Entry(container, show='*', width=30, font=("Helvetica", 12))
+        self.nueva_contrasena_entry.insert(0, 'Nueva Contraseña')
+        self.nueva_contrasena_entry.bind("<FocusIn>", lambda event: self.clear_placeholder(event, 'Nueva Contraseña'))
         self.nueva_contrasena_entry.pack(pady=5)
-        tk.Button(self.root, text="Crear Usuario", command=self.crear_usuario).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.main_window).pack(pady=10)
+
+        # Create account button
+        create_account_button = tk.Button(container, text="Crear Usuario", command=self.crear_usuario, width=30, bg='#6366F1', fg='white', font=("Helvetica", 12, "bold"))
+        create_account_button.pack(pady=10)
+
+        # Back button
+        back_button = tk.Button(container, text="Volver", command=self.main_window, width=30, bg='#6366F1', fg='white', font=("Helvetica", 12, "bold"))
+        back_button.pack(pady=10)
 
     def crear_usuario(self):
         nuevo_usuario = self.nuevo_usuario_entry.get()
@@ -94,7 +177,7 @@ class App:
     def producto_window(self, producto_nombre):
         self.clear_frame()
         producto = self.productos[producto_nombre]
-        tk.Label(self.root, text=f"{producto.nombre} - Inventario", font=("Helvetica", 16)).pack(pady=10)
+        tk.Label(self.root, text=f"{producto.nombre} - Inventario", font=("Helvetica", 16), bg='#6366F1', fg='white').pack(pady=10)
         tree = ttk.Treeview(self.root, columns=("Marca", "Precio", "Stock", "Total"), show="headings")
         tree.heading("Marca", text="Marca")
         tree.heading("Precio", text="Precio (USD)")
@@ -104,14 +187,14 @@ class App:
             tree.insert("", tk.END, values=item)
         tree.pack(pady=10)
 
-        tk.Label(self.root, text="Marca:").pack(pady=5)
+        tk.Label(self.root, text="Marca:", bg='#6366F1', fg='white').pack(pady=5)
         self.marca_entry = tk.Entry(self.root)
         self.marca_entry.pack(pady=5)
-        tk.Label(self.root, text="Cantidad:").pack(pady=5)
+        tk.Label(self.root, text="Cantidad:", bg='#6366F1', fg='white').pack(pady=5)
         self.cantidad_entry = tk.Entry(self.root)
         self.cantidad_entry.pack(pady=5)
-        tk.Button(self.root, text="Agregar al Carrito", command=lambda: self.agregar_al_carrito(producto)).pack(pady=10)
-        tk.Button(self.root, text="Volver", command=self.main_window).pack(pady=10)
+        tk.Button(self.root, text="Agregar al Carrito", command=lambda: self.agregar_al_carrito(producto), bg='#6366F1', fg='white', font=("Helvetica", 12, "bold")).pack(pady=10)
+        tk.Button(self.root, text="Volver", command=self.main_window, bg='#6366F1', fg='white', font=("Helvetica", 12, "bold")).pack(pady=10)
 
     def agregar_al_carrito(self, producto):
         marca_seleccionada = self.marca_entry.get().lower()
@@ -127,6 +210,10 @@ class App:
         else:
             messagebox.showerror("Error", f"Marca no válida para {producto.nombre.capitalize()}.")
         self.main_window()
+
+    def clear_placeholder(self, event, placeholder):
+        if event.widget.get() == placeholder:
+            event.widget.delete(0, tk.END)
 
     def clear_frame(self):
         for widget in self.root.winfo_children():
